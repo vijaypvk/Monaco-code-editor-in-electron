@@ -1,3 +1,4 @@
+
 const monacoLoader = document.createElement('script');
 monacoLoader.src = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js";
 document.body.appendChild(monacoLoader);
@@ -13,30 +14,19 @@ monacoLoader.onload = function () {
             value: '// Write your code here...',
             language: 'javascript',
             theme: currentTheme,
-            automaticLayout: true  // Enables auto-resizing
+            automaticLayout: true
         });
 
-        // Button functionalities
-        document.getElementById('newFile').addEventListener('click', () => {
-            editor.setValue('');
-        });
+        // Listen for New File event
+        window.electronAPI.onNewFile(() => editor.setValue(''));
 
-        document.getElementById('toggleTheme').addEventListener('click', () => {
-            currentTheme = currentTheme === "vs-dark" ? "vs-light" : "vs-dark";
-            editor.updateOptions({ theme: currentTheme });
-        });
+        // Listen for Open File event
+        window.electronAPI.onOpenFile((_, content) => editor.setValue(content));
 
-        document.getElementById('openFile').addEventListener('click', () => {
-            alert('File Open feature can be implemented using Electron dialog.');
-        });
-
-        document.getElementById('saveFile').addEventListener('click', () => {
-            alert('File Save feature can be implemented using Electron fs module.');
-        });
-
-        // Resize editor when window resizes
-        window.addEventListener('resize', () => {
-            editor.layout();
+        // Save File event
+        window.electronAPI.onSaveFile(async (_, filePath) => {
+            const content = editor.getValue();
+            window.electronAPI.saveFileContent(filePath, content);
         });
     });
 };

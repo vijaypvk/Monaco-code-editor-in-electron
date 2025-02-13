@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monaco Editor in Electron</title>
+    <title>IT Infra Code Editor</title>
     <style>
         * {
             margin: 0;
@@ -14,85 +15,26 @@
 
         body {
             display: flex;
-            flex-direction: column;
             height: 100vh;
             background: #1e1e1e;
             color: white;
             overflow: hidden;
         }
 
-        /* Toolbar Styles */
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #282c34;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .toolbar button {
-            background: #61dafb;
-            border: none;
-            padding: 8px 15px;
-            margin-right: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .toolbar button:hover {
-            background: #21a1f1;
-        }
-
-        .theme-toggle {
-            background: #ffcc00;
-        }
-
-        .theme-toggle:hover {
-            background: #e6b800;
-        }
-
-        /* Editor Container */
         #editor-container {
             flex: 1;
-            display: flex;
-            flex-direction: column;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
 
         #editor {
-            flex-grow: 1;
             width: 100%;
             height: 100%;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            .toolbar {
-                flex-direction: column;
-                padding: 10px;
-                text-align: center;
-            }
-
-            .toolbar button {
-                margin: 5px 0;
-                width: 90%;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="toolbar">
-        <div>
-            <button id="newFile">New File</button>
-            <button id="openFile">Open</button>
-            <button id="saveFile">Save</button>
-        </div>
-        <button id="toggleTheme" class="theme-toggle">Toggle Theme</button>
-    </div>
 
     <div id="editor-container">
         <div id="editor"></div>
