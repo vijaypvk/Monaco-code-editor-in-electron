@@ -1,95 +1,84 @@
 
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
-const fs = require('fs');
-const path = require('path');
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const path = require("path");
+const fs = require("fs");
+const { spawn } = require("child_process"); // Use spawn for better performance
 
-let win;
-let currentFilePath = null; // Track the currently opened file
+let mainWindow;
 
-function createWindow() {
-    win = new BrowserWindow({
-        width: 800,
-        height: 600,
+app.whenReady().then(() => {
+    mainWindow = new BrowserWindow({
+        width: 1200,
+        height: 800,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-            contextIsolation: true,
-            nodeIntegration: false
+            preload: path.join(__dirname, "preload.js"),
+            nodeIntegration: false,
+            contextIsolation: true
         }
     });
 
-    win.loadFile('index.html');
+    mainWindow.loadFile("index.html");
 
-    const menu = Menu.buildFromTemplate([
-        {
-            label: 'File',
-            submenu: [
-                {
-                    label: 'New File',
-                    accelerator: 'CmdOrCtrl+N',
-                    click: () => {
-                        currentFilePath = null;
-                        win.webContents.send('new-file');
-                    }
-                },
-                {
-                    label: 'Open File',
-                    accelerator: 'CmdOrCtrl+O',
-                    click: async () => {
-                        const { filePaths } = await dialog.showOpenDialog({ properties: ['openFile'] });
-                        if (filePaths.length > 0) {
-                            currentFilePath = filePaths[0];
-                            const content = fs.readFileSync(currentFilePath, 'utf-8');
-                            win.webContents.send('open-file', content);
-                        }
-                    }
-                },
-                {
-                    label: 'Save File',
-                    accelerator: 'CmdOrCtrl+S',
-                    click: async () => {
-                        if (currentFilePath) {
-                            win.webContents.send('save-file', currentFilePath);
-                        } else {
-                            const { filePath } = await dialog.showSaveDialog();
-                            if (filePath) {
-                                currentFilePath = filePath;
-                                win.webContents.send('save-file', filePath);
-                            }
-                        }
-                    }
-                },
-                { type: 'separator' },
-                { role: 'quit' }
-            ]
-        },
-        {
-            label: 'Edit',
-            submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'copy' }, { role: 'paste' }]
-        },
-        {
-            label: 'View',
-            submenu: [{ role: 'reload' }, { role: 'toggledevtools' }]
-        }
-    ]);
-
-    Menu.setApplicationMenu(menu);
-}
-
-app.whenReady().then(createWindow);
-
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
+    if (!app.isPackaged) {
+        mainWindow.webContents.openDevTools();
     }
 });
 
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
+// Quit when all windows are closed
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit();
 });
 
-// IPC handlers for file operations
-ipcMain.on('save-file-content', (event, filePath, content) => {
-    fs.writeFileSync(filePath, content, 'utf-8');
+// Function to execute Python code
+ipcMain.handle("run-python", async (_, code) => {
+    return new Promise((resolve) => {
+        const scriptPath = path.join(__dirname, "python_script.py");
+        const pythonProcess = spawn("python", [scriptPath]);
+
+        let output = "";
+        let errorOutput = "";
+
+        // Capture standard output
+        pythonProcess.stdout.on("data", (data) => {
+            output += data.toString();
+        });
+
+        // Capture error output
+        pythonProcess.stderr.on("data", (data) => {
+            errorOutput += data.toString();
+        });
+
+        // Handle process exit
+        pythonProcess.on("close", () => {
+            if (errorOutput) {
+                resolve(`❌ Error: ${errorOutput.trim()}`);
+            } else {
+                resolve(output.trim());
+            }
+        });
+
+        // Send Python code to stdin
+        pythonProcess.stdin.write(code);
+        pythonProcess.stdin.end();
+    });
+});
+
+// Save Notebook
+ipcMain.handle("save-notebook", async (_, content) => {
+    const { filePath } = await dialog.showSaveDialog({
+        filters: [{ name: "Notebook", extensions: ["json"] }]
+    });
+
+    if (!filePath) return;
+    fs.writeFileSync(filePath, JSON.stringify(content, null, 2));
+});
+
+// Load Notebook
+ipcMain.handle("load-notebook", async () => {
+    const { filePaths } = await dialog.showOpenDialog({
+        filters: [{ name: "Notebook", extensions: ["json"] }]
+    });
+
+    if (!filePaths.length) return null;
+    return JSON.parse(fs.readFileSync(filePaths[0], "utf-8"));
 });

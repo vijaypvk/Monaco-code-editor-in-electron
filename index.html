@@ -1,45 +1,61 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Infra Code Editor</title>
+    <title>Jupyter-Like Notebook</title>
+    <script> require = { paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } }; </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="renderer.js" defer></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
         body {
-            display: flex;
-            height: 100vh;
+            font-family: Arial, sans-serif;
             background: #1e1e1e;
             color: white;
-            overflow: hidden;
+            padding: 10px;
         }
-
-        #editor-container {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+        .editor {
+            height: 150px;
+            border: 1px solid #444;
+            margin-bottom: 5px;
         }
-
-        #editor {
-            width: 100%;
-            height: 100%;
+        .output {
+            background: black;
+            padding: 5px;
+            min-height: 70px;
+            margin-top: 10px;
+        }
+        .cell {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #333;
+            background: #2e2e2e;
+        }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .delete-button {
+            background: red;
         }
     </style>
 </head>
 <body>
 
-    <div id="editor-container">
-        <div id="editor"></div>
-    </div>
+    <button onclick="addCodeCell()">➕ Code</button>
+    <button onclick="addMarkdownCell()">📄 Markdown</button>
+    <button onclick="runAllCells()">▶️ Run All</button>
+    <button onclick="saveNotebook()">💾 Save</button>
+    <button onclick="loadNotebook()">📂 Load</button>
+    <button onclick="toggleTheme()">🎨 Theme</button>
 
-    <script src="renderer.js"></script>
+    <div id="notebook"></div>
+
 </body>
 </html>
